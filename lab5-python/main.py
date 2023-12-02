@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import wave
+import heartpy as hp
 
 
 def plot_waveform(signal, sample_rate):
@@ -35,7 +36,7 @@ if __name__ == "__main__":
     signal, sample_rate = read_wav_file(file_path)
 
     # plot the waveform
-    plot_waveform(signal, sample_rate)
+    # plot_waveform(signal, sample_rate)
 
     # perform fft
     n = len(signal)
@@ -44,15 +45,29 @@ if __name__ == "__main__":
     fft_result = np.fft.fft(signal)
 
     # plot the fft
-    plot_frequency_spectrum(freq, fft_result)
+    # plot_frequency_spectrum(freq, fft_result)
 
     # do the filtering
     cut_off_freq = 170
     fft_filtered = fft_result.copy()
     fft_filtered[np.abs(freq) < cut_off_freq] = 0
 
-    plot_frequency_spectrum(freq, fft_filtered)
+    # plot_frequency_spectrum(freq, fft_filtered)
 
     # perform inverse fft
-    signal_filtered = np.fft.ifft(fft_filtered)
-    plot_waveform(signal_filtered, sample_rate)
+    signal_filtered = np.real(np.fft.ifft(fft_filtered))
+    # plot_waveform(signal_filtered, sample_rate)
+
+    signal_filtered = [int(i)+21000 for i in signal_filtered]
+    print(max(signal_filtered), min(signal_filtered))
+
+    np.savetxt("data_xd.csv", signal_filtered, delimiter='\n', fmt='%d')
+    
+
+    # estimate BPM value
+    data = hp.get_data("data_xd.csv")
+    # data = hp.load_exampledata(0)
+    fs = 500
+
+    working_data, measures = hp.process(data, fs)
+    print(measures['bpm'])
